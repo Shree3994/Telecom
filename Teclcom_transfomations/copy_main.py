@@ -46,7 +46,7 @@ ran_df = object_for_common_utils.dataframe_creator("silver_RAN_Management","silv
 # print(ran_df.count())
 
 
-# sla_df = spark.read.csv(path=r"C:\Users\iamsh\Desktop\FINAL_FILES_Initial_Clean_data\Operations_files\13. SLA.csv",header=True,inferSchema=True)
+# sla_df = spark.read.csv(path=r"C:\Users\shree\OneDrive\Desktop\Brain_works-LAPTOP-HAD5JC9F\Telecommunication Project\FINAL_FILES_Initial_Clean\Operations_files\13. SLA.csv",header=True,inferSchema=True)
 # # sla_df.show()
 # # sla_df.printSchema()
 
@@ -80,9 +80,12 @@ maintenance_df = object_for_common_utils.dataframe_creator("silver_Maintenance_d
                                                                                                                col("time_stamp"),
                                                                                                                "dd-MM-yyyy")).withColumnRenamed(
     "time_stamp", "need_maintenance_time_stamp").withColumn("scheduled_maintenance_date",
-                                                       to_date(col("scheduled_maintenance_date"),
-                                                               "dd-MM-yyyy")).withColumn("last_maintenance", to_date(
-    col("last_maintenance"), "dd-MM-yyyy")).withColumnRenamed("fault_id", "fault_id_maintenance_table")
+                                                            to_date(col("scheduled_maintenance_date"),
+                                                                    "dd-MM-yyyy")).withColumn("last_maintenance",
+                                                                                              to_date(
+                                                                                                  col("last_maintenance"),
+                                                                                                  "dd-MM-yyyy")).withColumnRenamed(
+    "fault_id", "fault_id_maintenance_table")
 
 # maintenance_df.show(50)
 # maintenance_df.printSchema()
@@ -101,7 +104,7 @@ joined_df = (
         cell_tower_placement_df.cell_tower_id_ctp == tower_range_and_coverage_df.cell_tower_id, "inner").join(
         tower_capacity_df, "ID", "inner").join(fault_detection_df, "ID", "inner").join(maintenance_df, "ID", "inner"))
 
-joined_df.show(50)
+# joined_df.show(50)
 # print(joined_df.count())
 # joined_df.write.csv(path=r"C:\Users\iamsh\Desktop\FINAL_FILES_Initial_Clean_data\all_tables_joined_final",header=True)
 
@@ -130,14 +133,14 @@ QoS_Index_df = with_metrics_agg_df.withColumn("QoS",when(col("Quality_Score")>75
 # print(QoS_Index_df.count())
 # Finding The total number of Excellent, Average and Poor Zones.
 count_QoS = QoS_Index_df.select("QoS").groupBy("QoS").count()
-count_QoS.show()
+# count_QoS.show()
 # QoS_Index_df.show(50)
 
 ######Business Requirement 2 : Checking Performance of 5G wireless services across zones based upon the customer feedback.
 
 #selecting the required columns needed to fulfil this business requirement
 
-req2_select_columns_df =joined_df.select("ID","Region","Zone","Cell_ID","C_Customer_Satisfaction_Score","P_Latency(ms)","P_Signal_Strength(dBm)","P_Throughput(Mbps)","Jitter(ms)","Upload_Speed(Mbps)","Download_Speed(Mbps)","Data_traffic (%)","Network_utilization(%)","coverage_area(%)","Service_Availability(%)","S_Packet_Loss(%)","User_Count","earthquake_prone_area","flood_prone_area","frequency (MHz)","Total_capacity(Mbps)","Average_Daily_Load(Mbps)","projected_growth_rate(%)","fault_type","Mean_Time_to_Repair(mins)","maintenance_status")
+req2_select_columns_df =joined_df.select("ID","Region","Zone","Cell_ID","C_Customer_Satisfaction_Score","P_Latency(ms)","P_Signal_Strength(dBm)","P_Throughput(Mbps)","Jitter(ms)","Upload_Speed(Mbps)","Download_Speed(Mbps)","Data_traffic (%)","Network_utilization(%)","coverage_area(%)","Service_Availability(%)","S_Packet_Loss(%)","User_Count","earthquake_prone_area","flood_prone_area","frequency (MHz)","Total_capacity(Mbps)","Average_Daily_Load (Mbps)","projected_growth_rate(%)","fault_type","Mean_Time_to_Repair(mins)","maintenance_status")
 
 # Defining what relates to excellent, average or poor customer feedback.
 
@@ -168,7 +171,7 @@ CS_parameters_df  = joined_df.select("Region","Zone","Cell_ID","C_Customer_Satis
 # Evaluating the number of cell tower areas  and their performance based upon the feedback provided by the customers.
 # Every zone has 3 cell tower areas. Similarly, every region has 9 cell tower areas.
 CS_count_df = (CS_parameters_df.groupBy("Customer_Satisfaction").count().withColumnRenamed("count","Number_of_cell_tower_areas"))
-CS_count_df.show()
+# CS_count_df.show()
 # CS_count_df.printSchema()
 
 # Evaluating the Performance of service for every region based upon customer feedback.
@@ -192,7 +195,7 @@ percentage_distribution_df = CS_count_df.withColumn("Percentage",(col("Number_of
 ############################################## Combining the Outputs of both the above requirements to find out those Cell Towers that are providing poor service as per both - the company data as well as the customer feedback #############################################
 
 req1_req2_df = QoS_Index_df.join(CS_parameters_df,"Cell_ID","inner").select("Region","Zone","Cell_ID","QoS","Customer_Satisfaction").filter((col("QoS")== "Poor") & (col("Customer_Satisfaction")=="poor"))
-req1_req2_df.show(50)
+# req1_req2_df.show(50)
 
 
 ##### Business requirement 3:
@@ -210,26 +213,26 @@ maintenance_action_df = joined_df.withColumn("maintenance_action", when(col('age
 # 3. Replacement of equipment on the basis of maintenance action
 
 replace_equip_df = maintenance_action_df.filter(col("maintenance_action") == "Need Replacement")
-replace_equip_df.show()
+# replace_equip_df.show()
 # print(replace_equip_df.count())
 
 # 4. Maintenance of equipment on the basis of maintenance action
 maintain_equip_df = maintenance_action_df.filter(col("maintenance_action") == "Need Maintenance")
-maintain_equip_df.show()
+# maintain_equip_df.show()
 # print(maintain_equip_df.count())
 
 #5 Infrastructure that requires urgent attention: factors : high risk, need to be replaced.
 
 infra_immediate_upgrade = risk_assessment_df.join(maintenance_action_df,"Cell_ID","inner").filter((col("risk_factor")=="High")& (col("maintenance_action")=="Need Replacement"))
-infra_immediate_upgrade.show()
+# infra_immediate_upgrade.show()
 
 ######## Business Requirement 4: Future Proofing Cell Towers : Enhancing the traffic handling capacity of cell towers based upon projected growth rates :
 
-req2_select_columns_df =joined_df.select("ID","Region","Zone","Cell_ID","C_Customer_Satisfaction_Score","P_Latency(ms)","P_Signal_Strength(dBm)","P_Throughput(Mbps)","Jitter(ms)","Upload_Speed(Mbps)","Download_Speed(Mbps)","Data_traffic (%)","Network_utilization(%)","coverage_area(%)","Service_Availability(%)","S_Packet_Loss(%)","User_Count","earthquake_prone_area","flood_prone_area","frequency (MHz)","Total_capacity(Mbps)","Average_Daily_Load(Mbps)","projected_growth_rate(%)","fault_type","Mean_Time_to_Repair(mins)","maintenance_status")
+req2_select_columns_df =joined_df.select("ID","Region","Zone","Cell_ID","C_Customer_Satisfaction_Score","P_Latency(ms)","P_Signal_Strength(dBm)","P_Throughput(Mbps)","Jitter(ms)","Upload_Speed(Mbps)","Download_Speed(Mbps)","Data_traffic (%)","Network_utilization(%)","coverage_area(%)","Service_Availability(%)","S_Packet_Loss(%)","User_Count","earthquake_prone_area","flood_prone_area","frequency (MHz)","Total_capacity(Mbps)","Average_Daily_Load (Mbps)","projected_growth_rate(%)","fault_type","Mean_Time_to_Repair(mins)","maintenance_status")
 # req2_select_columns_df.show(50)
 
 # 1.Introduce new column to calculate Cell_Capacity_Utilization_df
-Cell_Capacity_Utilization_df = req2_select_columns_df.withColumn("Cell_Capacity_Utilization(%)",(col("Average_Daily_Load(Mbps)") / col("Total_capacity(Mbps)"))* 100)
+Cell_Capacity_Utilization_df = req2_select_columns_df.withColumn("Cell_Capacity_Utilization(%)",(col("Average_Daily_Load (Mbps)") / col("Total_capacity(Mbps)"))* 100)
 # Cell_Capacity_Utilization_df.show(50)
 
 # 2.Intruduce new column to calculate future_capacity_requirement
@@ -261,7 +264,7 @@ immediate_upgrade_df = future_capacity_requirement_df.select("ID", "Region", "Zo
 immediate_upgrade_df = immediate_upgrade_df.withColumn("Upgrade_Needed", when((col("Cell_Capacity_Utilization(%)") > 90) & (col("projected_growth_rate(%)")>5), "Yes").otherwise("No"))
 # need to add projected_growth_rate > 5%.
 immediate_upgrade_df = immediate_upgrade_df.filter(col("Upgrade_Needed")== "Yes")
-immediate_upgrade_df.show()
+# immediate_upgrade_df.show()
 
 
 

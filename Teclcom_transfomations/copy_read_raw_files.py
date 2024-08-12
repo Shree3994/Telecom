@@ -99,6 +99,7 @@ clean_network_analytics_df = raw_Network_Analytics_Data_df\
 # clean_network_analytics_df.show(50)
 # print(clean_network_analytics_df.count())
 object_for_common_utils.write_to_silver(clean_network_analytics_df,"silver_network_analytics")
+
 # Reading 6. raw_RAN_management_data
 
 # Load dataset
@@ -157,8 +158,8 @@ clean_tower_capacity_df = raw_tower_capacity_df\
 clean_tower_capacity_df = clean_tower_capacity_df[clean_tower_capacity_df['SpecialChars'] == '']
 
 clean_tower_capacity_df = clean_tower_capacity_df.withColumnRenamed("frequency", "frequency (MHz)") \
-                                               .withColumnRenamed("Average_Daily_Load", "Average_Daily_Load (Mbps)")\
-                                                .drop(col("SpecialChars")).drop("latitude","longitude","cell_tower_id","region","zone").drop("current_load").orderBy("ID")
+                                               .withColumnRenamed("Average_Daily_Load(Mbps)", "Average_Daily_Load (Mbps)")\
+                                                .drop("SpecialChars","latitude","longitude","cell_tower_id","region","zone","current_load").orderBy("ID")
 
 object_for_common_utils.write_to_silver(clean_tower_capacity_df,"silver_tower_capacity")
 
